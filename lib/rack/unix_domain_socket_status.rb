@@ -2,9 +2,6 @@ require 'json'
 
 module Rack
   class UnixDomainSocketStatus
-    PROC_NET_UNIX_ARGS = %w(/proc/net/unix)
-    defined?(::Encoding) and PROC_NET_UNIX_ARGS.push({encoding: 'binary'})
-
     def initialize(app, options={})
       @app = app
       raw_unix_domain_socket_path = options.delete(:unix_domain_socket_path) || raise('unix_domain_socket_path is required')
@@ -13,7 +10,8 @@ module Rack
       @options = {
         path:  '/unix_status',
         status: 200,
-        headers: {'Content-Type' => 'application/json'}
+        headers: {'Content-Type' => 'application/json'},
+        proc_net_unix_args: %w(/proc/net/unix)
       }.merge(options)
     end
 
@@ -40,7 +38,7 @@ module Rack
       queued = 0
       active = 0
       # no point in pread since we can't stat for size on this file
-      File.read(*PROC_NET_UNIX_ARGS).scan(paths) do |s|
+      ::File.read(*@options[:proc_net_unix_args].push({encoding: 'binary'})).scan(paths) do |s|
         case s[0].to_i
         when 2 then queued += 1 # SS_CONNECTING
         when 3 then active += 1 # SS_CONNECTED
