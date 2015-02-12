@@ -7,9 +7,9 @@ Gem::Specification.new do |spec|
   spec.version       = "0.0.1"
   spec.authors       = ["SpringMT"]
   spec.email         = ["today.is.sky.blue.sky@gmail.com"]
-  spec.summary       = %q{}
-  spec.description   = %q{}
-  spec.homepage      = ""
+  spec.summary       = %q{Check for unix domain socket usage}
+  spec.description   = %q{Check for unix domain socket usage}
+  spec.homepage      = "https://github.com/SpringMT/rack-unix_domain_socket_status"
   spec.license       = "MIT"
 
   spec.files         = `git ls-files -z`.split("\x0")
