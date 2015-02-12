@@ -1,4 +1,5 @@
 require 'json'
+require 'net/http'
 require File.dirname(__FILE__) + '/spec_helper'
 
 describe Rack::UnixDomainSocketStatus do
@@ -37,6 +38,20 @@ describe Rack::UnixDomainSocketStatus do
     it do
       response = Rack::MockRequest.new(subject).get('/unix_status')
       expect(response.body).to eq 'Hello, World!'
+    end
+  end
+
+  context 'for travis(linux) only' do
+    if ENV['TEST_LINUX']
+      it do
+        url = URI.parse('http://localhost:9292/unix_status')
+        req = Net::HTTP::Get.new(url.path)
+        res = Net::HTTP.start(url.host, url.port) {|http|
+          http.request(req)
+        }
+        puts res.body
+        p JSON.parse(res.body)
+      end
     end
   end
 
