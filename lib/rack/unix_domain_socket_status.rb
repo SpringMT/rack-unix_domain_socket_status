@@ -5,18 +5,18 @@ module Rack
     def initialize(app, options={})
       @app = app
       raw_unix_domain_socket_path = options.delete(:unix_domain_socket_path) || raise('unix_domain_socket_path is required')
-      raw_unix_domain_socket_path.force_encoding(Encoding::BINARY) if defined?(Encoding)
-      @unix_domain_socket_path = Regexp.escape raw_unix_domain_socket_path
+      @unix_domain_socket_path    = Regexp.escape raw_unix_domain_socket_path.force_encoding(Encoding::BINARY)
+      @proc_net_unix_path         = options.delete(:proc_net_unix_path) || '/proc/net/unix'
       @options = {
         path:  '/unix_status',
         status: 200,
         headers: {'Content-Type' => 'application/json'},
-        proc_net_unix_args: %w(/proc/net/unix)
       }.merge(options)
+      @enable = ::File.exist? @proc_net_unix_path
     end
 
     def call(env)
-      if env['PATH_INFO'] == @options[:path]
+      if @enable && env['PATH_INFO'] == @options[:path]
         status = @options[:status]
         body = [calculate_unix_domain_socket_status]
         headers = @options[:headers]
@@ -38,7 +38,7 @@ module Rack
       queued = 0
       active = 0
       # no point in pread since we can't stat for size on this file
-      ::File.read(*@options[:proc_net_unix_args].push({encoding: 'binary'})).scan(paths) do |s|
+      ::File.read(*[@proc_net_unix_path].push({encoding: 'binary'})).scan(paths) do |s|
         case s[0].to_i
         when 2 then queued += 1 # SS_CONNECTING
         when 3 then active += 1 # SS_CONNECTED
