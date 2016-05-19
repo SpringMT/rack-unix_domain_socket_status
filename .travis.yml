@@ -7,4 +7,6 @@ rvm:
   - 2.1
   - 2.2
 before_script:
+  - mkdir tmp
+  - touch tmp/dummy_unix
   - rackup -OFile=/tmp/travis.sock -D spec/config.ru
